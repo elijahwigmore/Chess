@@ -3,6 +3,7 @@
 
 var board = Chessboard('myBoard')
 var game = null
+var algorithmMethod = null
 
 function onDragStart (source, piece, position, orientation) {
   // do not pick up pieces if the game is over
@@ -23,6 +24,16 @@ function makeRandomMove () {
   board.position(game.fen())
 }
 
+function makeFirstMove () {
+  var possibleMoves = game.moves()
+
+  // game over
+  if (possibleMoves.length === 0) return
+
+  game.move(possibleMoves[0])
+  board.position(game.fen())
+}
+
 function onDrop (source, target) {
   // see if the move is legal
   var move = game.move({
@@ -34,8 +45,8 @@ function onDrop (source, target) {
   // illegal move
   if (move === null) return 'snapback'
 
-  // make random legal move for black
-  window.setTimeout(makeRandomMove, 250)
+  // make legal move for black based on selected computer algorithm
+  window.setTimeout(algorithmMethod, 250)
 }
 
 // update the board position after the piece snap
@@ -55,4 +66,14 @@ function startGame() {
 
   board = Chessboard('myBoard', config)
   game = new Chess()
+
+  var algorithm = document.getElementById('algorithms').value
+  switch (algorithm) {
+    case 'Random':
+      algorithmMethod = makeRandomMove
+      break
+    case 'First':
+      algorithmMethod = makeFirstMove
+      break
+  }
 }
