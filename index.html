@@ -1,14 +1,23 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <link rel="stylesheet" href="lib/chessboard/css/chessboard-1.0.0.css">
-    </head>
-    <body>
-        <div id="board" style="width: 400px"></div>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="lib/chessboard/css/chessboard-1.0.0.css">
+  </head>
+  <body>
+    <div>
+      <label for="algorithms">Select Algorithm:</label>
+      <select name="algorithms" id="algorithms">
+        <option value="Random">Random</option>
+      </select>
+      <button type="button" onclick="startGame()">Start</button>
+    </div>
 
-        <script src="lib/jquery/jquery-3.5.1.js"></script>
-        <script src="lib/chessboard/js/chessboard-1.0.0.js"></script>
-        <script src="script.js"></script>
-    </body>
+    <div id="myBoard" style="width: 400px"></div>
+
+    <script src="lib/jquery/jquery-3.5.1.js"></script>
+    <script src="lib/chess/js/chess.js"></script>
+    <script src="lib/chessboard/js/chessboard-1.0.0.js"></script>
+    <script src="script.js"></script>
+  </body>
 </html>
