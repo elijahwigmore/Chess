@@ -3,7 +3,7 @@
 
 var board = Chessboard('myBoard')
 var game = null
-var algorithmMethod = null
+var playerColour = null
 
 var pieceValues = {
   'p': 10,
@@ -18,45 +18,46 @@ function onDragStart (source, piece, position, orientation) {
   // do not pick up pieces if the game is over
   if (game.game_over()) return false
 
-  // only pick up pieces for White
-  if (piece.search(/^b/) !== -1) return false
+  // only pick up pieces for the player
+  if ((playerColour === 'w' && piece.search(/^b/) !== -1) ||
+      (playerColour === 'b' && piece.search(/^w/) !== -1)) return false
 }
 
-function makeRandomMove () {
-  var possibleMoves = game.moves()
+function onDrop (source, target) {
+  // see if the move is legal
+  var move = game.move({
+    from: source,
+    to: target,
+    promotion: 'q' // NOTE: always promote to a queen for example simplicity
+  })
 
-  // game over
-  if (possibleMoves.length === 0) return
+  // illegal move
+  if (move === null) return 'snapback'
 
-  var randomIdx = Math.floor(Math.random() * possibleMoves.length)
-  game.move(possibleMoves[randomIdx])
+  // make legal move for black based on selected computer algorithm
+  window.setTimeout(makeComputerMove, 250)
+}
+
+// update the board position after the piece snap
+// for castling, en passant, pawn promotion
+function onSnapEnd () {
   board.position(game.fen())
 }
 
-function makeFirstMove () {
+function makeComputerMove () {
   var possibleMoves = game.moves()
 
   // game over
   if (possibleMoves.length === 0) return
 
-  game.move(possibleMoves[0])
-  board.position(game.fen())
-}
-
-function makePositionEvaluationMove () {
-  var possibleMoves = game.moves()
-
-  // game over
-  if (possibleMoves.length === 0) return
-
-  var opponentValue = getPlayerValue('w')
+  var opponentValue = getPlayerValue(playerColour)
   var selectedMoveIndex = Math.floor(Math.random() * possibleMoves.length)
 
   for (var i = 0; i < possibleMoves.length; i++) {
     // simulate making a move
     game.move(possibleMoves[i])
 
-    var newOpponentValue = getPlayerValue('w')
+    var newOpponentValue = getPlayerValue(playerColour)
     if (opponentValue > newOpponentValue) {
       opponentValue = newOpponentValue
       selectedMoveIndex = i
@@ -76,7 +77,7 @@ function getPlayerValue (color) {
   for (var i = 0; i < 8; i++) {
     for (var j = 0; j < 8; j++) {
       var piece = game.board()[i][j]
-      if (piece && piece.color == color) {
+      if (piece && piece.color === color) {
         value += pieceValues[piece.type]
       }
     }
@@ -85,49 +86,21 @@ function getPlayerValue (color) {
   return value
 }
 
-function onDrop (source, target) {
-  // see if the move is legal
-  var move = game.move({
-    from: source,
-    to: target,
-    promotion: 'q' // NOTE: always promote to a queen for example simplicity
-  })
-
-  // illegal move
-  if (move === null) return 'snapback'
-
-  // make legal move for black based on selected computer algorithm
-  window.setTimeout(algorithmMethod, 250)
-}
-
-// update the board position after the piece snap
-// for castling, en passant, pawn promotion
-function onSnapEnd () {
-  board.position(game.fen())
-}
-
 function startGame() {
+  playerColour = document.getElementById('playerColour').value
+
   var config = {
     draggable: true,
     position: 'start',
     onDragStart: onDragStart,
     onDrop: onDrop,
-    onSnapEnd: onSnapEnd
+    onSnapEnd: onSnapEnd,
+    orientation: playerColour === 'w' ? 'white' : 'black'
   }
 
   board = Chessboard('myBoard', config)
   game = new Chess()
 
-  var algorithm = document.getElementById('algorithms').value
-  switch (algorithm) {
-    case 'Random Move':
-      algorithmMethod = makeRandomMove
-      break
-    case 'First Move':
-      algorithmMethod = makeFirstMove
-      break
-      case 'Position Evaluation':
-        algorithmMethod = makePositionEvaluationMove
-        break
-  }
+  // If player is black, computer goes first
+  if (playerColour === 'b') window.setTimeout(makeComputerMove, 250)
 }
