@@ -88,6 +88,9 @@ function getPlayerValue (color) {
 
 function startGame() {
   playerColour = document.getElementById('playerColour').value
+  if (playerColour === 'random') {
+    playerColour = Math.random() < 0.5 ? 'w' : 'b'
+  }
 
   var config = {
     draggable: true,
