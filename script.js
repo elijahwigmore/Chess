@@ -4,6 +4,7 @@
 var board = Chessboard('myBoard')
 var game = null
 var playerColour = null
+var computerColour = null
 
 var pieceValues = {
   'p': 10,
@@ -50,28 +51,42 @@ function makeComputerMove () {
   // game over
   if (possibleMoves.length === 0) return
 
-  var opponentValue = getPlayerValue(playerColour)
+  var totalScore = getScoreForColour(computerColour) - getScoreForColour(playerColour)
   var selectedMoveIndex = Math.floor(Math.random() * possibleMoves.length)
+  console.log(`Old Score: ${totalScore}`)
 
   for (var i = 0; i < possibleMoves.length; i++) {
-    // simulate making a move
     game.move(possibleMoves[i])
 
-    var newOpponentValue = getPlayerValue(playerColour)
-    if (opponentValue > newOpponentValue) {
-      opponentValue = newOpponentValue
-      selectedMoveIndex = i
+    var possibleMoves2 = game.moves()
+    var computerScore = Number.MAX_VALUE
+
+    for (var j = 0; j < possibleMoves2.length; j++) {
+      game.move(possibleMoves2[j])
+
+      var newComputerScore = getScoreForColour(computerColour)
+      if (computerScore > newComputerScore) {
+        computerScore = newComputerScore
+      }
+
+      game.undo()
     }
 
-    // undo the move
+    var newTotalScore = newComputerScore - getScoreForColour(playerColour)
+      if (totalScore < newTotalScore) {
+        totalScore = newTotalScore
+        selectedMoveIndex = i
+      }
+
     game.undo()
   }
 
+  console.log(`New Score: ${totalScore}`)
   game.move(possibleMoves[selectedMoveIndex])
   board.position(game.fen())
 }
 
-function getPlayerValue (color) {
+function getScoreForColour (color) {
   var value = 0
 
   for (var i = 0; i < 8; i++) {
@@ -88,9 +103,12 @@ function getPlayerValue (color) {
 
 function startGame() {
   playerColour = document.getElementById('playerColour').value
+
   if (playerColour === 'random') {
     playerColour = Math.random() < 0.5 ? 'w' : 'b'
   }
+
+  computerColour = playerColour === 'w' ? 'b' : 'w'
 
   var config = {
     draggable: true,
